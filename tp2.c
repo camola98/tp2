@@ -26,3 +26,9 @@ de ser ejecutado. Si un comando no pertenece a los listados previamente o
 tiene un error, se imprime Error en comando <comando> por stderr y 
 continua la ejecución.
 */
+typedef struct vuelos{
+       char* codigo;
+       size_t prioridad;
+       size_t horario;
+       size_t fecha;
+}vuelos_t;
