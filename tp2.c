@@ -1,3 +1,13 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <ctype.h>
+#include "abb.h"
+#include "heap.h"
+#include "hash.h"
+#include "strutil.h"
+
 /* tp 2 */
 /* 
 Interfaz comandos:
