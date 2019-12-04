@@ -36,10 +36,6 @@ de ser ejecutado. Si un comando no pertenece a los listados previamente o
 tiene un error, se imprime Error en comando <comando> por stderr y 
 continua la ejecución.
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
 
 //ej '2018-10-10T08:51:32 - 1234'
 size_t comparar_vuelos(char* vuelo_a, char* vuelo_b){
@@ -64,26 +60,26 @@ typedef struct vuelo{
        char* aerolinea;
        char* aeropuerto_origen;
        char* aeropuerto_destino;
-       char* tail_number;
+       char* numero_cola;
        size_t prioridad;
        char* tiempo;
-       size_t* air_time;
-       size_t* cancelled;
+       char* tiempo_vuelo;
+       char* cancelado;
 }vuelo_t;
 
 vuelo_t* vuelo_crear(char** info){
-    vuelo_t* flight = malloc(sizeof(vuelo_t));
-    if (!flight) return NULL;
-    flight->codigo = info[0];
-    flight->aerolinea = info[1];
-    flight->aeropuerto_origen = info[2];
-    flight->aeropuerto_destino = info[3];
-    flight->tail_number = info[4];
-    flight->prioridad = *(size_t*)info[5];
-    flight->tiempo = info[6];
-    flight->air_time = *(size_t*)info[7];
-    flight->cancelled = *(size_t*)info[8];
-    return flight;
+    vuelo_t* vuelo = malloc(sizeof(vuelo_t));
+    if (!vuelo) return NULL;
+    vuelo->codigo = info[0];
+    vuelo->aerolinea = info[1];
+    vuelo->aeropuerto_origen = info[2];
+    vuelo->aeropuerto_destino = info[3];
+    vuelo->numero_cola = info[4];
+    vuelo->prioridad = atoi(info[5]);
+    vuelo->tiempo = info[6];
+    vuelo->tiempo_vuelo = info[7];
+    vuelo->cancelado = info[8];
+    return vuelo;
 }
 
 typedef struct adm_vuelos{
@@ -121,7 +117,7 @@ adm_vuelos_t* adm_vuelos_crear(){
 vuelo_t** lector_archivo(char* file_name, char* comando ){
     FILE* file = fopen(file_name, "r");
     if (!file){
-        fprintf( stderr, "Error en comando < %s >", comando);
+        fprintf( stderr, "Error en comando agregar_archivo", comando);
         return;
         }
     char* linea = NULL;
@@ -130,4 +126,17 @@ vuelo_t** lector_archivo(char* file_name, char* comando ){
         char** arreglo = split(linea, ',');
         vuelo_t* vuelo = vuelo_crear(arreglo);
     }
+}
+
+void algueiza(){
+    char* linea = NULL;
+    size_t len = 0;
+    while(getline(&linea, &len, stdin) != -1){
+        char* copia_cad = strdup(linea);
+        char** valores_linea = split(copia_cad, ' ');
+}
+
+int main (){
+    algueiza();
+    return 0;
 }
