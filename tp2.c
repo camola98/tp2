@@ -41,7 +41,7 @@ continua la ejecución.
 #include <string.h>
 #include <stdbool.h>
 
-//2018-10-10T08:51:32 - 1234
+//ej '2018-10-10T08:51:32 - 1234'
 size_t comparar_vuelos(char* vuelo_a, char* vuelo_b){
     const char* fecha_a = substr(vuelo_a, 19);
     const char* fecha_b = substr(vuelo_b, 19);
@@ -53,6 +53,10 @@ size_t comparar_vuelos(char* vuelo_a, char* vuelo_b){
         n = strcmp(codigo_a, codigo_b);
     }
     return n;
+}
+size_t comparar_prioridad(size_t a, size_t b){
+    if (a<b) return -1;
+    return 1;
 }
 
 typedef struct vuelo{
@@ -90,9 +94,9 @@ typedef struct adm_vuelos{
 
 adm_vuelos_t* adm_vuelos_crear(){
     adm_vuelos_t* flights = malloc(sizeof(adm_vuelos_t));
-    hash_t* hash = hash_crear();
-    heap_t* heap = heap_crear();
-    abb_t* abb = abb_crear();
+    hash_t* hash = hash_crear(free);
+    heap_t* heap = heap_crear(comparar_prioridad);
+    abb_t* abb = abb_crear(comparar_vuelos, free);
     if (!flights || !hash || !heap || !abb) return NULL;
     flights->codigos_vuelos = hash;
     flights->prioridad_vuelos = heap;
