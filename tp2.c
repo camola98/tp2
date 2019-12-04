@@ -68,6 +68,23 @@ vuelo_t* vuelo_crear(char** info){
     return flight;
 }
 
+typedef struct adm_vuelos{
+    hash_t* codigos_vuelos;
+    heap_t* prioridad_vuelos;
+    abb_t* arbol_rangos;
+}adm_vuelos_t*;
+
+adm_vuelos_t* adm_vuelos_crear(){
+    adm_vuelos_t* flights = malloc(sizeof(adm_vuelos_t));
+    hash_t* hash = hash_crear();
+    heap_t* heap = heap_crear();
+    abb_t* abb = abb_crear();
+    if (!flights || !hash || !heap || !abb) return NULL;
+    flights->codigos_vuelos = hash;
+    flights->prioridad_vuelos = heap;
+    flights->arbol_rangos = abb;
+}
+
 //procesar el csv
 /*ej. formato
     FLIGHT_NUMBER: 4608
