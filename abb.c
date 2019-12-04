@@ -217,3 +217,33 @@ void abb_iter_in_destruir(abb_iter_t* iter){
     pila_destruir(iter->pila);
     free(iter);
 }
+
+/*  CAMBIOS EN ABB */
+/* ABB ITERADOR POR RANGOS*/
+
+typedef struct abb_iter_rangos{
+    abb_t* arbol;
+    n_abb_t* desde;
+    n_abb_t* hasta;
+} abb_iter_rangos_t;
+
+abb_iter_rangos_t* abb_iter_rangos_crear(const abb_t *arbol, const char* desde, const char* hasta){
+    abb_iter_rangos_t* iter = malloc(sizeof(abb_iter_rangos_t));
+    if (!iter) return NULL;
+    iter->arbol = arbol;
+    _encontrar_rangos(arbol->raiz, arbol->cmp, desde, hasta, iter);
+    return iter;
+}
+
+void _encontrar_rangos(n_abb_t* raiz, abb_comparar_clave_t cmp, const char* desde, const char* hasta, abb_iter_rangos_t* iter){
+    if (!raiz) return;
+    if (!iter->desde){
+        if (raiz->izq && cmp(desde, raiz->clave)<0) _encontrar_rangos(raiz->izq, cmp,desde, hasta, iter);
+        else if (!cmp(desde, raiz->clave)) iter->desde = raiz;
+        else _encontrar_rangos(raiz->der, cmp,desde, hasta, iter);
+        return;
+    }
+    if (raiz->izq && cmp(hasta, raiz->clave)<0) _encontrar_rangos(raiz->izq, cmp,desde, hasta, iter);
+    else if (!cmp(hasta, raiz->clave)) iter->hasta = raiz;
+    else _encontrar_rangos(raiz->der, cmp,desde, hasta, iter);
+}
