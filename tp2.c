@@ -41,6 +41,20 @@ continua la ejecución.
 #include <string.h>
 #include <stdbool.h>
 
+//2018-10-10T08:51:32 - 1234
+size_t comparar_vuelos(char* vuelo_a, char* vuelo_b){
+    const char* fecha_a = substr(vuelo_a, 19);
+    const char* fecha_b = substr(vuelo_b, 19);
+    int n = strcmp(fecha_a, fecha_b);
+    if (n == 0){
+        const char* codigo_a, codigo_b;
+        strcat(codigo_a, vuelo_a+20);
+        strcat(codigo_b, vuelo_b+20);
+        n = strcmp(codigo_a, codigo_b);
+    }
+    return n;
+}
+
 typedef struct vuelo{
        char* codigo;
        char* aerolinea;
@@ -72,7 +86,7 @@ typedef struct adm_vuelos{
     hash_t* codigos_vuelos;
     heap_t* prioridad_vuelos;
     abb_t* arbol_rangos;
-}adm_vuelos_t*;
+}adm_vuelos_t;
 
 adm_vuelos_t* adm_vuelos_crear(){
     adm_vuelos_t* flights = malloc(sizeof(adm_vuelos_t));
@@ -98,6 +112,8 @@ adm_vuelos_t* adm_vuelos_crear(){
     AIR_TIME: 43
     CANCELLED: 0
 */
+
+
 vuelo_t** lector_archivo(char* file_name, char* comando ){
     FILE* file = fopen(file_name, "r");
     if (!file){
