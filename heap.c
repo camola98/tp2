@@ -7,7 +7,7 @@
 #define FACTOR_AMP_HEAP 2
 #define FACTOR_REDUC_HEAP 2
 
-struct heap {
+struct heap{
 	void** datos;
 	size_t cant;
 	size_t tam;

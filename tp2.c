@@ -1,3 +1,4 @@
+#define _GNU_SOURCE 1
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +10,7 @@
 #include "hash.h"
 #include "strutil.h"
 
-typedef enum recorrido{ASC, DESC} recorrido_t;
+typedef enum recorrido{ASC, DESC, ERROR} recorrido_t;
 typedef enum comando{AGREGAR_ARCHIVO, VER_TABLERO, INFO_VUELO, PRIORIDAD_VUELOS, BORRAR, INVALIDO} comando_t;
 
 /* tp 2 */
@@ -41,81 +42,38 @@ tiene un error, se imprime Error en comando <comando> por stderr y
 continua la ejecución.
 */
 
+typedef struct adm_vuelos{
+    hash_t* codigos;
+    abb_t* fechas_despegues;
+} adm_vuelos_t;
+
 typedef struct tablero{
     recorrido_t recorrido;
     pila_t* pila;
     size_t k;
     size_t contador;    
-}
+} tablero_t;
 
 //Función aux para comparar vuelos por fecha. Ej.: '2018-10-10T08:51:32 - 1234'
-size_t comparar_vuelos(char* vuelo_a, char* vuelo_b){
+int comparar_vuelos(const char* vuelo_a, const char* vuelo_b){
     const char* fecha_a = substr(vuelo_a, 19);
     const char* fecha_b = substr(vuelo_b, 19);
     int n = strcmp(fecha_a, fecha_b);
     if (n == 0){
-        const char* codigo_a, codigo_b;
-        strcat(codigo_a, vuelo_a+20);
-        strcat(codigo_b, vuelo_b+20);
-        n = strcmp(codigo_a, codigo_b);
+        // char* codigo_a;
+        // char* codigo_b;
+        // strcat(codigo_a, vuelo_a+20);
+        // strcat(codigo_b, vuelo_b+20);
+        n = strcmp(vuelo_a+20, vuelo_b+20);
     }
     return n;
 }
 
 // Función aux para comparar priordad de dos vuelos
-int comparar_prioridad(char** arreglo, char* valor){
-    return strcmp(arreglo[5], valor);
-    //if (a < b) devuelve -1;
-    //if (a > b) devuelve 1;
-}
-
-heap_t* heap_de_prioridades(hash_t* hash, cmp_func_t cmp, size_t cantidad){
-    //heap de minimos
-    heap_t* heap = heap_crear(cmp);
-    hash_iter_t* iter = hash_iter_crear(hash);
-    if (!heap) return NULL;
-    while (heap_cantidad(heap)!= cantidad && !hash_iter_al_final(iter)){
-        //heap ver max en heap de minimo funciona como heap ver min
-        if (cmp(hash_obtener(hash,hash_iter_ver_actual(iter)), heap_ver_max(heap))>0){
-            if (heap_cantidad(heap) == cantidad) heap_desencolar(heap);
-            heap_encolar(heap, hash_iter_ver_actual(iter));
-        }
-        hash_iter_avanzar(iter);
-    }
-return heap;
-}
-
-
-// typedef struct vuelo{
-//        char* codigo;
-//        char* aerolinea;
-//        char* aeropuerto_origen;
-//        char* aeropuerto_destino;
-//        char* numero_cola;
-//        size_t prioridad;
-//        char* tiempo;
-//        char* tiempo_vuelo;
-//        char* cancelado;
-// } vuelo_t;
-
-// vuelo_t* vuelo_crear(char** info){
-//     vuelo_t* vuelo = malloc(sizeof(vuelo_t));
-//     if (!vuelo) return NULL;
-//     vuelo->aerolinea = info[1];
-//     vuelo->aeropuerto_origen = info[2];
-//     vuelo->aeropuerto_destino = info[3];
-//     vuelo->numero_cola = info[4];
-//     vuelo->prioridad = atoi(info[5]);
-//     vuelo->tiempo = info[6];
-//     vuelo->tiempo_vuelo = info[7];
-//     vuelo->cancelado = info[8];
-//     return vuelo;
+// int comparar_prioridad(char** arreglo, char* valor){
+//     if (a < b) devuelve -1;
+//     if (a > b) devuelve 1;
 // }
-
-typedef struct adm_vuelos{
-    hash_t* codigos;
-    abb_t* fechas_despegues;
-} adm_vuelos_t;
 
 adm_vuelos_t* adm_vuelos_crear(){
     adm_vuelos_t* vuelos = malloc(sizeof(adm_vuelos_t));
@@ -167,7 +125,7 @@ bool agregar_archivo(adm_vuelos_t* adm_vuelos, char* file_name){
             fclose(file); return false;
         }
         char* str_unido = unir_str(arreglo[6], arreglo[0]);
-        if (!abb_guardar(adm_vuelos->fechas_despegues, unir_str, NULL)){
+        if (!abb_guardar(adm_vuelos->fechas_despegues, str_unido, NULL)){
             fclose(file); free(str_unido); free_strv(hash_borrar(adm_vuelos->codigos, arreglo[0])); return false;
         }
         free(str_unido);
@@ -179,12 +137,12 @@ bool agregar_archivo(adm_vuelos_t* adm_vuelos, char* file_name){
 recorrido_t identificar_recorrido(char* recorrido){
     if (!strcmp(recorrido, "asc")) return ASC;
     if (!strcmp(recorrido, "desc")) return DESC;
-    return INVALIDO;
+    return ERROR;
 }
 
 bool verificar_parametros(size_t k, recorrido_t recorrido, char* desde, char* hasta){
     if (k <= 0) return false;
-    if (recorrido == INVALIDO) return false;
+    if (recorrido == ERROR) return false;
     if (strcmp(hasta, desde) < 0) return false;
     return true;
 }
@@ -221,23 +179,9 @@ bool ver_tablero(adm_vuelos_t* adm_vuelos, size_t k, char* recorrido, char* desd
     if (!tablero) return false;
     abb_visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, recorrer_vuelos, tablero);
     if (_recorrido == DESC){
-        while(!pila_esta_vacia(tablero->pila)) fprintf(stdout, "%s", pila_desapilar(tablero->pila));
+        while(!pila_esta_vacia(tablero->pila)) fprintf(stdout, "%s", (char*)pila_desapilar(tablero->pila));
     }
     return true;
-}
-
-heap_t* heap_de_prioridades(hash_iter_t* iter, cmp_func_t cmp, size_t cantidad){
-    //heap de maximos
-    heap_t* heap = heap_crear(cmp);
-    if (!heap) return NULL;
-    while (heap_cantidad(heap)!= cantidad && !hash_iter_al_final(iter)){
-        if (cmp(hash_iter_ver_actual(iter), heap_ver_max(heap))<0){
-            if (heap_cantidad(heap) == cantidad) heap_desencolar(heap);
-            heap_encolar(heap, hash_iter_ver_actual(iter));
-        }
-        hash_iter_avanzar(iter);
-    }
-    return heap;
 }
 
 bool info_vuelo(adm_vuelos_t* adm_vuelos, char* nro_vuelo){
@@ -280,7 +224,7 @@ void algueiza(adm_vuelos_t* adm_vuelos){
         if (!valores_linea) fprintf(stderr, "Error en programa");
         comando_t comando = identificar_comando(valores_linea[0]);
         if (!ejecutar_comando(adm_vuelos, comando, valores_linea)) fprintf(stdout, "Error en comando %s", valores_linea[0]);
-        else fprintf(stdout, "OK", valores_linea[0]);
+        else fprintf(stdout, "OK");
         free_strv(valores_linea);
     }
     free(linea);
