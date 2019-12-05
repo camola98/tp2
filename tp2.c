@@ -60,31 +60,31 @@ size_t comparar_prioridad(size_t a, size_t b){
     return 0;
 }
 
-typedef struct vuelo{
-       char* codigo;
-       char* aerolinea;
-       char* aeropuerto_origen;
-       char* aeropuerto_destino;
-       char* numero_cola;
-       size_t prioridad;
-       char* tiempo;
-       char* tiempo_vuelo;
-       char* cancelado;
-}vuelo_t;
+// typedef struct vuelo{
+//        char* codigo;
+//        char* aerolinea;
+//        char* aeropuerto_origen;
+//        char* aeropuerto_destino;
+//        char* numero_cola;
+//        size_t prioridad;
+//        char* tiempo;
+//        char* tiempo_vuelo;
+//        char* cancelado;
+// } vuelo_t;
 
-vuelo_t* vuelo_crear(char** info){
-    vuelo_t* vuelo = malloc(sizeof(vuelo_t));
-    if (!vuelo) return NULL;
-    vuelo->aerolinea = info[1];
-    vuelo->aeropuerto_origen = info[2];
-    vuelo->aeropuerto_destino = info[3];
-    vuelo->numero_cola = info[4];
-    vuelo->prioridad = atoi(info[5]);
-    vuelo->tiempo = info[6];
-    vuelo->tiempo_vuelo = info[7];
-    vuelo->cancelado = info[8];
-    return vuelo;
-}
+// vuelo_t* vuelo_crear(char** info){
+//     vuelo_t* vuelo = malloc(sizeof(vuelo_t));
+//     if (!vuelo) return NULL;
+//     vuelo->aerolinea = info[1];
+//     vuelo->aeropuerto_origen = info[2];
+//     vuelo->aeropuerto_destino = info[3];
+//     vuelo->numero_cola = info[4];
+//     vuelo->prioridad = atoi(info[5]);
+//     vuelo->tiempo = info[6];
+//     vuelo->tiempo_vuelo = info[7];
+//     vuelo->cancelado = info[8];
+//     return vuelo;
+// }
 
 typedef struct adm_vuelos{
     hash_t* codigos;
@@ -93,7 +93,7 @@ typedef struct adm_vuelos{
 
 adm_vuelos_t* adm_vuelos_crear(){
     adm_vuelos_t* vuelos = malloc(sizeof(adm_vuelos_t));
-    hash_t* hash = hash_crear(free);
+    hash_t* hash = hash_crear(free_strv);
     abb_t* abb = abb_crear(comparar_vuelos, NULL);
     if (!vuelos || !hash || !abb) return NULL;
     vuelos->codigos = hash;
@@ -126,37 +126,47 @@ comando_t identificar_comando(char* valor){
 
 char* unir_str(char* str1, char* str2){
     char* strings[] = {str1, "-", str2, NULL};
-    char* str_unidas = join(strings, " ");
+    char* str_unidas = join(strings, ' ');
     return str_unidas;
 }
 
-bool agregar_archivo(char* file_name, adm_vuelos_t* adm_vuelos){
+bool agregar_archivo(adm_vuelos_t* adm_vuelos, char* file_name){
     FILE* file = fopen(file_name, "r");
     if (!file) return false;
     char* linea = NULL;
     size_t capacidad = 0;
     while (getline(&linea, &capacidad, file) != -1){
         char** arreglo = split(linea, ',');
-        vuelo_t* vuelo = vuelo_crear(arreglo);
-        if (!vuelo){
-            fclose(file);
-            return false;
-        }
-        if (!hash_guardar(adm_vuelos->codigos, arreglo[0], vuelo)){
-            fclose(file); free(vuelo); return false;
+        if (!hash_guardar(adm_vuelos->codigos, arreglo[0], arreglo)){
+            fclose(file); return false;
         }
         char* unir_str = unir_str(arreglo[6], arreglo[0]);
         if (!abb_guardar(adm_vuelos->fechas_despegues, unir_str, NULL)){
-            fclose(file); free(vuelo); hash_borrar(arreglo[0]); return false;
+            fclose(file); free(unir_str); free_strv(hash_borrar(arreglo[0])); return false;
         }
         free(unir_str);
     }
     free(linea);
+    return true;
 }
 
-bool ejecutar_comando(adm_vuelos_t* adm_vuelos, comando_t comando){
+bool info_vuelo(adm_vuelos_t* adm_vuelos, char* nro_vuelo){
+    char** vuelo = hash_obtener(adm_vuelos->codigos, nro_vuelo);
+    if (!vuelo) return false;
+    char* info = join(vuelo, ' ');
+    fprintf(stdout, "%s", info);
+    free(info);
+    return true;    
+}
+
+bool ejecutar_comando(adm_vuelos_t* adm_vuelos, comando_t comando, char** info_extra){
     if (comando == INVALIDO) return false;
-    if (comando == AGREGAR_ARCHIVO && !agregar_archivo(adm_vuelos))
+    if (comando == AGREGAR_ARCHIVO && !agregar_archivo(info_extra[1], adm_vuelos)) return false;
+    if (comando == VER_TABLERO && !agregar_archivo(adm_vuelos, info_extra[1])) return false;
+    if (comando == INFO_VUELO && !agregar_archivo(adm_vuelos)) return false;
+    if (comando == PRIORIDAD_VUELOS && !agregar_archivo(adm_vuelos)) return false;
+    if (comando == BORRAR && !agregar_archivo(adm_vuelos)) return false;
+    return true;
 }
 
 void algueiza(adm_vuelos_t* adm_vuelos){
@@ -167,19 +177,22 @@ void algueiza(adm_vuelos_t* adm_vuelos){
         char** valores_linea = split(copia_cad, ' ');
         if (!valores_linea) fprintf(stderr, "Error en programa");
         comando_t comando = identificar_comando(valores_linea[0]);
-        if (!ejecutar_comando(adm_vuelos, comando)) fprintf(stdout, "Error en comando %s", valores_linea[0]);
+        if (!ejecutar_comando(adm_vuelos, comando, valores_linea)) fprintf(stdout, "Error en comando %s", valores_linea[0]);
         else fprintf(stdout, "OK", valores_linea[0])
         free_strv(valores_linea);
     }
     free(linea);
 }
 
-int main (){
+int main(){
     adm_vuelos_t* adm_vuelos = adm_vuelos_crear();
     if (!adm_vuelos){
         fprintf(stderr, "Error en programa");
         return 1;
     }
     algueiza(adm_vuelos);
+    hash_destruir(adm_vuelos->codigos);
+    abb_destruir(adm_vuelos->fechas_despegues);
+    free(adm_vuelos);
     return 0;
 }
