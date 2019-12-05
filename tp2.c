@@ -62,6 +62,21 @@ size_t comparar_prioridad(size_t a, size_t b){
     return 0;
 }
 
+heap_t* heap_de_prioridades(hash_iter_t* iter, cmp_func_t cmp, size_t cantidad){
+    //heap de maximos
+    heap_t* heap = heap_crear(cmp);
+    if (!heap) return NULL;
+    while (heap_cantidad(heap)!= cantidad && !hash_iter_al_final(iter)){
+        if (cmp(hash_iter_ver_actual(iter), heap_ver_max(heap))<0){
+            if (heap_cantidad(heap) == cantidad) heap_desencolar(heap);
+            heap_encolar(heap, hash_iter_ver_actual(iter));
+        }
+        hash_iter_avanzar(iter);
+    }
+return heap;
+}
+
+
 // typedef struct vuelo{
 //        char* codigo;
 //        char* aerolinea;
@@ -142,11 +157,11 @@ bool agregar_archivo(adm_vuelos_t* adm_vuelos, char* file_name){
         if (!hash_guardar(adm_vuelos->codigos, arreglo[0], arreglo)){
             fclose(file); return false;
         }
-        char* unir_str = unir_str(arreglo[6], arreglo[0]);
+        char* str_unido = unir_str(arreglo[6], arreglo[0]);
         if (!abb_guardar(adm_vuelos->fechas_despegues, unir_str, NULL)){
-            fclose(file); free(unir_str); free_strv(hash_borrar(arreglo[0])); return false;
+            fclose(file); free(str_unido); free_strv(hash_borrar(adm_vuelos->codigos, arreglo[0])); return false;
         }
-        free(unir_str);
+        free(str_unido);
     }
     free(linea);
     return true;
@@ -211,7 +226,7 @@ void algueiza(adm_vuelos_t* adm_vuelos){
         if (!valores_linea) fprintf(stderr, "Error en programa");
         comando_t comando = identificar_comando(valores_linea[0]);
         if (!ejecutar_comando(adm_vuelos, comando, valores_linea)) fprintf(stdout, "Error en comando %s", valores_linea[0]);
-        else fprintf(stdout, "OK", valores_linea[0])
+        else fprintf(stdout, "OK", valores_linea[0]);
         free_strv(valores_linea);
     }
     free(linea);
