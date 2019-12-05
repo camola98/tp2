@@ -41,6 +41,13 @@ tiene un error, se imprime Error en comando <comando> por stderr y
 continua la ejecución.
 */
 
+typedef struct tablero{
+    recorrido_t recorrido;
+    pila_t* pila;
+    size_t k;
+    size_t contador;    
+}
+
 //Función aux para comparar vuelos por fecha. Ej.: '2018-10-10T08:51:32 - 1234'
 size_t comparar_vuelos(char* vuelo_a, char* vuelo_b){
     const char* fecha_a = substr(vuelo_a, 19);
@@ -61,21 +68,6 @@ size_t comparar_prioridad(size_t a, size_t b){
     if (a > b) return 1;
     return 0;
 }
-
-heap_t* heap_de_prioridades(hash_iter_t* iter, cmp_func_t cmp, size_t cantidad){
-    //heap de maximos
-    heap_t* heap = heap_crear(cmp);
-    if (!heap) return NULL;
-    while (heap_cantidad(heap)!= cantidad && !hash_iter_al_final(iter)){
-        if (cmp(hash_iter_ver_actual(iter), heap_ver_max(heap))<0){
-            if (heap_cantidad(heap) == cantidad) heap_desencolar(heap);
-            heap_encolar(heap, hash_iter_ver_actual(iter));
-        }
-        hash_iter_avanzar(iter);
-    }
-return heap;
-}
-
 
 // typedef struct vuelo{
 //        char* codigo;
@@ -173,7 +165,7 @@ recorrido_t identificar_recorrido(char* recorrido){
     return INVALIDO;
 }
 
-bool verificar_parametros(int k, recorrido_t recorrido, char* desde, char* hasta){
+bool verificar_parametros(size_t k, recorrido_t recorrido, char* desde, char* hasta){
     if (k <= 0) return false;
     if (recorrido == INVALIDO) return false;
     if (strcmp(hasta, desde) < 0) return false;
@@ -181,21 +173,54 @@ bool verificar_parametros(int k, recorrido_t recorrido, char* desde, char* hasta
 }
 
 bool recorrer_vuelos(const char *clave, void *dato, void* extra){
-    if (*extra >= k) return false;
-    *extra += 1;
-    if (recorrido == ASC) fprintf(stdout, "%s\n", clave);
-    else pila_apilar(clave);
+    if (extra->contador >= extra->k) return false;
+    extra->contador += 1;
+    if (extra->recorrido == ASC) fprintf(stdout, "%s\n", clave);
+    else pila_apilar(extra->pila, clave);
     return true;
 }
 
-bool ver_tablero(adm_vuelos_t* adm_vuelos, int k, char* recorrido, char* desde, char* hasta){
+tablero_t* crear_tablero(recorrido_t recorrido, size_t k){
+    tablero_t* tablero = malloc(sizeof(tablero_t));
+    if (!tablero) return NULL;
+    tablero->k = k;
+    tablero->contador = 0;
+    tablero->recorrido = recorrido;
+    tablero->pila = NULL;
+    if (recorrido == DESC){
+        tablero->pila = pila_crear();
+        if (!tablero->pila){ 
+            free(tablero);
+            return NULL;
+        }
+    }
+    return tablero;
+}
+
+bool ver_tablero(adm_vuelos_t* adm_vuelos, size_t k, char* recorrido, char* desde, char* hasta){
     recorrido_t _recorrido = identificar_recorrido(recorrido);
     if (!verificar_parametros(k, _recorrido, desde, hasta)) return false;
-    if (recorrido == ASC) abb_visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, printear_vuelos, k);
-    else{
-        abb_visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, printear_vuelos, k);
+    tablero_t* tablero = crear_tablero(_recorrido, k);
+    if (!tablero) return false;
+    abb_visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, recorrer_vuelos, tablero);
+    if (_recorrido == DESC){
+        while(!pila_esta_vacia(tablero->pila)) fprintf(stdout, "%s", pila_desapilar(tablero->pila));
     }
     return true;
+}
+
+heap_t* heap_de_prioridades(hash_iter_t* iter, cmp_func_t cmp, size_t cantidad){
+    //heap de maximos
+    heap_t* heap = heap_crear(cmp);
+    if (!heap) return NULL;
+    while (heap_cantidad(heap)!= cantidad && !hash_iter_al_final(iter)){
+        if (cmp(hash_iter_ver_actual(iter), heap_ver_max(heap))<0){
+            if (heap_cantidad(heap) == cantidad) heap_desencolar(heap);
+            heap_encolar(heap, hash_iter_ver_actual(iter));
+        }
+        hash_iter_avanzar(iter);
+    }
+    return heap;
 }
 
 bool info_vuelo(adm_vuelos_t* adm_vuelos, char* nro_vuelo){
