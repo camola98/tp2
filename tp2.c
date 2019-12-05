@@ -99,10 +99,11 @@ bool verificar_parametros(size_t k, recorrido_t recorrido, char* desde, char* ha
 }
 
 bool recorrer_vuelos(const char *clave, void *dato, void* extra){
-    if (extra->contador >= extra->k) return false;
-    extra->contador += 1;
-    if (extra->recorrido == ASC) fprintf(stdout, "%s\n", clave);
-    else pila_apilar(extra->pila, clave);
+    tablero_t* tablero = extra;
+    if (tablero->contador >= tablero->k) return false;
+    tablero->contador += 1;
+    if (tablero->recorrido == ASC) fprintf(stdout, "%s\n", clave);
+    else pila_apilar(tablero->pila, strdup(clave));
     return true;
 }
 
@@ -130,7 +131,11 @@ bool ver_tablero(adm_vuelos_t* adm_vuelos, size_t k, char* recorrido, char* desd
     if (!tablero) return false;
     abb_visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, recorrer_vuelos, tablero);
     if (_recorrido == DESC){
-        while(!pila_esta_vacia(tablero->pila)) fprintf(stdout, "%s", (char*)pila_desapilar(tablero->pila));
+        while(!pila_esta_vacia(tablero->pila)){
+            char* vuelo = pila_desapilar(tablero->pila);
+            fprintf(stdout, "%s", vuelo);
+            free(vuelo);
+        }
     }
     return true;
 }
@@ -144,10 +149,14 @@ bool info_vuelo(adm_vuelos_t* adm_vuelos, char* nro_vuelo){
     return true;    
 }
 
-bool prioridad_vuelos(adm_vuelos_t* adm_vuelos, char* )
+bool prioridad_vuelos(adm_vuelos_t* adm_vuelos, size_t k){
+    heap_t* vuelos = heap_crear(strcmp);
+    if (!vuelos) return false;
+    
+}
 
 bool borrar_rango(const char* clave, void* dato, void* extra){
-    adm_vuelos_t* adm_vuelos = (adm_vuelos_t*)extra;
+    adm_vuelos_t* adm_vuelos = extra;
     if (!abb_borrar(adm_vuelos->fechas_despegues, clave)) return false;
     if (!hash_borrar(adm_vuelos->codigos, clave)) return false;
     return true;
@@ -155,7 +164,7 @@ bool borrar_rango(const char* clave, void* dato, void* extra){
 
 bool borrar(adm_vuelos_t* adm_vuelos, char* desde, char* hasta){
     if (!verificar_parametros(*(size_t*)1, ASC, desde, hasta)) return false;
-    if(!visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, borrar_rango, adm_vuelos)) return false;
+    abb_visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, borrar_rango, adm_vuelos);
     return true;
 }
 
@@ -164,7 +173,7 @@ bool ejecutar_comando(adm_vuelos_t* adm_vuelos, comando_t comando, char** info_e
     if (comando == AGREGAR_ARCHIVO && !agregar_archivo(adm_vuelos, info_extra[1])) return false;
     if (comando == VER_TABLERO && !ver_tablero(adm_vuelos, atoi(info_extra[1]), info_extra[2], info_extra[3], info_extra[4])) return false;
     if (comando == INFO_VUELO && !info_vuelo(adm_vuelos, info_extra[1])) return false;
-    if (comando == PRIORIDAD_VUELOS && !prioridad_vuelos(adm_vuelos, info_extra[1])) return false;
+    if (comando == PRIORIDAD_VUELOS && !prioridad_vuelos(adm_vuelos, atoi(info_extra[1]))) return false;
     if (comando == BORRAR && !borrar(adm_vuelos, info_extra[1], info_extra[2])) return false;
     return true;
 }
