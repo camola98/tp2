@@ -13,35 +13,6 @@
 typedef enum recorrido{ASC, DESC, ERROR} recorrido_t;
 typedef enum comando{AGREGAR_ARCHIVO, VER_TABLERO, INFO_VUELO, PRIORIDAD_VUELOS, BORRAR, INVALIDO} comando_t;
 
-/* tp 2 */
-/* 
-Interfaz comandos:
-
-agregar_archivo <nombre_archivo>: 
-procesa de forma completa un archivo de .csv que contiene datos de vuelos.
-
-ver_tablero <K cantidad vuelos> <modo: asc/desc> <desde> <hasta>: 
-muestra los K vuelos ordenados por fecha de forma ascendente (asc) o 
-descendente (desc), cuya fecha de despegue esté dentro de el intervalo 
-<desde> <hasta> (inclusive).
-
-info_vuelo <código vuelo>: 
-muestra toda la información posible en sobre el vuelo que tiene el código 
-pasado por parámetro.
-
-prioridad_vuelos <K cantidad vuelos>: 
-muestra los códigos de los K vuelos que tienen mayor prioridad.
-
-borrar <desde> <hasta>: 
-borra todos los vuelos cuya fecha de despegue estén dentro del intervalo 
-<desde> <hasta> (inclusive).
-
-Si un comando es válido deberá imprimir OK por salida estándar después 
-de ser ejecutado. Si un comando no pertenece a los listados previamente o 
-tiene un error, se imprime Error en comando <comando> por stderr y 
-continua la ejecución.
-*/
-
 typedef struct adm_vuelos{
     hash_t* codigos;
     abb_t* fechas_despegues;
@@ -54,26 +25,15 @@ typedef struct tablero{
     size_t contador;    
 } tablero_t;
 
-//Función aux para comparar vuelos por fecha. Ej.: '2018-10-10T08:51:32 - 1234'
 int comparar_vuelos(const char* vuelo_a, const char* vuelo_b){
     const char* fecha_a = substr(vuelo_a, 19);
     const char* fecha_b = substr(vuelo_b, 19);
     int n = strcmp(fecha_a, fecha_b);
     if (n == 0){
-        // char* codigo_a;
-        // char* codigo_b;
-        // strcat(codigo_a, vuelo_a+20);
-        // strcat(codigo_b, vuelo_b+20);
         n = strcmp(vuelo_a+20, vuelo_b+20);
     }
     return n;
 }
-
-// Función aux para comparar priordad de dos vuelos
-// int comparar_prioridad(char** arreglo, char* valor){
-//     if (a < b) devuelve -1;
-//     if (a > b) devuelve 1;
-// }
 
 adm_vuelos_t* adm_vuelos_crear(){
     adm_vuelos_t* vuelos = malloc(sizeof(adm_vuelos_t));
