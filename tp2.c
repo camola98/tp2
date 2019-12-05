@@ -259,12 +259,16 @@ bool ejecutar_comando(adm_vuelos_t* adm_vuelos, comando_t comando, char** info_e
     return true;
 }
 
-void ver_tablero(size_t cantidad, char* modo, char* desde, char* hasta){
-    
+bool borrar_rango(const char* clave, void* dato, adm_vuelos_t* adm_vuelos){
+    if (!abb_borrar(adm_vuelos->fechas_despegues, clave)) return false;
+    if (!hash_borrar(adm_vuelos->codigos, clave)) return false;
+    return true;
 }
 
-bool borrar(){
-
+bool borrar(adm_vuelos_t* adm_vuelos, size_t cantidad, char* modo, char* desde, char* hasta){
+    if (!verificar_parametros(*(size_t*)1, ASC, desde, hasta)) return false;
+    if(!visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, borrar_rango, adm_vuelos)) return false;
+    return true;
 }
 
 void algueiza(adm_vuelos_t* adm_vuelos){
