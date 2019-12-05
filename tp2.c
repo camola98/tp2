@@ -4,10 +4,12 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "abb.h"
+#include "pila.h"
 #include "heap.h"
 #include "hash.h"
 #include "strutil.h"
 
+typedef enum recorrido{ASC, DESC} recorrido_t;
 typedef enum comando{AGREGAR_ARCHIVO, VER_TABLERO, INFO_VUELO, PRIORIDAD_VUELOS, BORRAR, INVALIDO} comando_t;
 
 /* tp 2 */
@@ -116,11 +118,11 @@ adm_vuelos_t* adm_vuelos_crear(){
 */
 
 comando_t identificar_comando(char* valor){
-    if !strcmp(valor, "agregar_archivo") return AGREGAR_ARCHIVO;
-    if !strcmp(valor, "ver_tablero") return VER_TABLERO;
-    if !strcmp(valor, "info_vuelo") return INFO_VUELO;
-    if !strcmp(valor, "prioridad_vuelos") return PRIORIDAD_VUELOS;
-    if !strcmp(valor, "borrar") return BORRAR;
+    if (!strcmp(valor, "agregar_archivo")) return AGREGAR_ARCHIVO;
+    if (!strcmp(valor, "ver_tablero")) return VER_TABLERO;
+    if (!strcmp(valor, "info_vuelo")) return INFO_VUELO;
+    if (!strcmp(valor, "prioridad_vuelos")) return PRIORIDAD_VUELOS;
+    if (!strcmp(valor, "borrar")) return BORRAR;
     return INVALIDO;
 }
 
@@ -150,6 +152,37 @@ bool agregar_archivo(adm_vuelos_t* adm_vuelos, char* file_name){
     return true;
 }
 
+recorrido_t identificar_recorrido(char* recorrido){
+    if (!strcmp(recorrido, "asc")) return ASC;
+    if (!strcmp(recorrido, "desc")) return DESC;
+    return INVALIDO;
+}
+
+bool verificar_parametros(int k, recorrido_t recorrido, char* desde, char* hasta){
+    if (k <= 0) return false;
+    if (recorrido == INVALIDO) return false;
+    if (strcmp(hasta, desde) < 0) return false;
+    return true;
+}
+
+bool recorrer_vuelos(const char *clave, void *dato, void* extra){
+    if (*extra >= k) return false;
+    *extra += 1;
+    if (recorrido == ASC) fprintf(stdout, "%s\n", clave);
+    else pila_apilar(clave);
+    return true;
+}
+
+bool ver_tablero(adm_vuelos_t* adm_vuelos, int k, char* recorrido, char* desde, char* hasta){
+    recorrido_t _recorrido = identificar_recorrido(recorrido);
+    if (!verificar_parametros(k, _recorrido, desde, hasta)) return false;
+    if (recorrido == ASC) abb_visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, printear_vuelos, k);
+    else{
+        abb_visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, printear_vuelos, k);
+    }
+    return true;
+}
+
 bool info_vuelo(adm_vuelos_t* adm_vuelos, char* nro_vuelo){
     char** vuelo = hash_obtener(adm_vuelos->codigos, nro_vuelo);
     if (!vuelo) return false;
@@ -162,10 +195,10 @@ bool info_vuelo(adm_vuelos_t* adm_vuelos, char* nro_vuelo){
 bool ejecutar_comando(adm_vuelos_t* adm_vuelos, comando_t comando, char** info_extra){
     if (comando == INVALIDO) return false;
     if (comando == AGREGAR_ARCHIVO && !agregar_archivo(adm_vuelos, info_extra[1])) return false;
-    if (comando == VER_TABLERO && !agregar_archivo(adm_vuelos, info_extra[1])) return false;
-    if (comando == INFO_VUELO && !agregar_archivo(adm_vuelos)) return false;
-    if (comando == PRIORIDAD_VUELOS && !agregar_archivo(adm_vuelos)) return false;
-    if (comando == BORRAR && !agregar_archivo(adm_vuelos)) return false;
+    if (comando == VER_TABLERO && !ver_tablero(adm_vuelos, info_extra[1])) return false;
+    if (comando == INFO_VUELO && !info_vuelo(adm_vuelos, info_extra[1])) return false;
+    if (comando == PRIORIDAD_VUELOS && !prioridad_vuelos(adm_vuelos)) return false;
+    if (comando == BORRAR && !borrar(adm_vuelos)) return false;
     return true;
 }
 

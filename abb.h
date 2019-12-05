@@ -58,6 +58,7 @@ void abb_destruir(abb_t *arbol);
 // Post: se aplico la funcion visitar que puede o no haber modificado el abb
 void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra);
 
+void abb_visitar_rangos(abb_t *arbol, char* desde, char* hasta, bool visitar(const char *, void *, void *), void *extra);
 
 /* Iterador del abb */
 

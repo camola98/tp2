@@ -173,6 +173,22 @@ void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void
     _abb_in_order(arbol->raiz, visitar, extra, cont_recorrido);
 }
 
+//Modificación a ABB: iterador interno por rangos
+
+bool _abb_visitar_rangos(n_abb_t *raiz, char* desde, char* hasta, bool visitar(const char *, void *, void *), void *extra, bool cont_recorrido){
+    if (!raiz || !cont_recorrido) return cont_recorrido;
+    if (strcmp(raiz->clave, desde) < 0) return _abb_visitar_rangos(raiz->der, desde, hasta, visitar, extra, cont_recorrido);
+    if (strcmp(raiz->clave, hasta) > 0) return _abb_visitar_rangos(raiz->izq, desde, hasta, visitar, extra, cont_recorrido);
+    else return _abb_visitar_rangos(raiz->izq, desde, hasta, visitar, extra, cont_recorrido) && _abb_visitar_rangos(raiz->der, desde, hasta, visitar, extra, visitar(raiz->clave, raiz->dato, extra)); 
+}
+
+void abb_visitar_rangos(abb_t *arbol, char* desde, char* hasta, bool visitar(const char *, void *, void *), void *extra){
+    bool cont_recorrido = true;
+    _abb_visitar_rangos(arbol->raiz, desde, hasta, visitar, extra, cont_recorrido);
+}
+
+//
+
 struct abb_iter{
     pila_t* pila;
 };
@@ -221,29 +237,29 @@ void abb_iter_in_destruir(abb_iter_t* iter){
 /*  CAMBIOS EN ABB */
 /* ABB ITERADOR POR RANGOS*/
 
-typedef struct abb_iter_rangos{
-    abb_t* arbol;
-    n_abb_t* desde;
-    n_abb_t* hasta;
-} abb_iter_rangos_t;
+// typedef struct abb_iter_rangos{
+//     abb_t* arbol;
+//     n_abb_t* desde;
+//     n_abb_t* hasta;
+// } abb_iter_rangos_t;
 
-abb_iter_rangos_t* abb_iter_rangos_crear(const abb_t *arbol, const char* desde, const char* hasta){
-    abb_iter_rangos_t* iter = malloc(sizeof(abb_iter_rangos_t));
-    if (!iter) return NULL;
-    iter->arbol = arbol;
-    _encontrar_rangos(arbol->raiz, arbol->cmp, desde, hasta, iter);
-    return iter;
-}
+// abb_iter_rangos_t* abb_iter_rangos_crear(const abb_t *arbol, const char* desde, const char* hasta){
+//     abb_iter_rangos_t* iter = malloc(sizeof(abb_iter_rangos_t));
+//     if (!iter) return NULL;
+//     iter->arbol = arbol;
+//     _encontrar_rangos(arbol->raiz, arbol->cmp, desde, hasta, iter);
+//     return iter;
+// }
 
-void _encontrar_rangos(n_abb_t* raiz, abb_comparar_clave_t cmp, const char* desde, const char* hasta, abb_iter_rangos_t* iter){
-    if (!raiz) return;
-    if (!iter->desde){
-        if (raiz->izq && cmp(desde, raiz->clave)<0) _encontrar_rangos(raiz->izq, cmp,desde, hasta, iter);
-        else if (!cmp(desde, raiz->clave)) iter->desde = raiz;
-        else _encontrar_rangos(raiz->der, cmp,desde, hasta, iter);
-        return;
-    }
-    if (raiz->izq && cmp(hasta, raiz->clave)<0) _encontrar_rangos(raiz->izq, cmp,desde, hasta, iter);
-    else if (!cmp(hasta, raiz->clave)) iter->hasta = raiz;
-    else _encontrar_rangos(raiz->der, cmp,desde, hasta, iter);
-}
+// void _encontrar_rangos(n_abb_t* raiz, abb_comparar_clave_t cmp, const char* desde, const char* hasta, abb_iter_rangos_t* iter){
+//     if (!raiz) return;
+//     if (!iter->desde){
+//         if (raiz->izq && cmp(desde, raiz->clave)<0) _encontrar_rangos(raiz->izq, cmp,desde, hasta, iter);
+//         else if (!cmp(desde, raiz->clave)) iter->desde = raiz;
+//         else _encontrar_rangos(raiz->der, cmp,desde, hasta, iter);
+//         return;
+//     }
+//     if (raiz->izq && cmp(hasta, raiz->clave)<0) _encontrar_rangos(raiz->izq, cmp,desde, hasta, iter);
+//     else if (!cmp(hasta, raiz->clave)) iter->hasta = raiz;
+//     else _encontrar_rangos(raiz->der, cmp,desde, hasta, iter);
+// }
