@@ -219,6 +219,14 @@ bool ejecutar_comando(adm_vuelos_t* adm_vuelos, comando_t comando, char** info_e
     return true;
 }
 
+void ver_tablero(size_t cantidad, char* modo, char* desde, char* hasta){
+    
+}
+
+bool borrar(){
+
+}
+
 void algueiza(adm_vuelos_t* adm_vuelos){
     char* linea = NULL;
     size_t len = 0;
