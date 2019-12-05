@@ -45,6 +45,11 @@ adm_vuelos_t* adm_vuelos_crear(){
     return vuelos;
 }
 
+int comparar_prioridad(void* a, void* b){
+     const char* uno = (char*)a, dos = (char*)b;
+     return strcmp(uno, dos);
+}
+
 void* free_para_hash(void* dato){
     char* arreglo = (char*)dato;
     free_strv(arreglo);
