@@ -161,7 +161,7 @@ bool info_vuelo(adm_vuelos_t* adm_vuelos, char* nro_vuelo){
 
 bool ejecutar_comando(adm_vuelos_t* adm_vuelos, comando_t comando, char** info_extra){
     if (comando == INVALIDO) return false;
-    if (comando == AGREGAR_ARCHIVO && !agregar_archivo(info_extra[1], adm_vuelos)) return false;
+    if (comando == AGREGAR_ARCHIVO && !agregar_archivo(adm_vuelos, info_extra[1])) return false;
     if (comando == VER_TABLERO && !agregar_archivo(adm_vuelos, info_extra[1])) return false;
     if (comando == INFO_VUELO && !agregar_archivo(adm_vuelos)) return false;
     if (comando == PRIORIDAD_VUELOS && !agregar_archivo(adm_vuelos)) return false;
