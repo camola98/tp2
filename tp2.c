@@ -54,18 +54,18 @@ size_t comparar_vuelos(char* vuelo_a, char* vuelo_b){
 }
 
 // Función aux para comparar priordad de dos vuelos
-size_t comparar_prioridad(size_t a, size_t b){
-    if (a < b) return -1;
-    if (a > b) return 1;
-    return 0;
+int comparar_prioridad(char** arreglo, char* valor){
+    return strcmp(arreglo[5], valor);
+
 }
 
-heap_t* heap_de_prioridades(hash_iter_t* iter, cmp_func_t cmp, size_t cantidad){
+heap_t* heap_de_prioridades(hash_t* hash, cmp_func_t cmp, size_t cantidad){
     //heap de minimos
     heap_t* heap = heap_crear(cmp);
+    hash_iter_t* iter = hash_iter_crear(hash);
     if (!heap) return NULL;
     while (heap_cantidad(heap)!= cantidad && !hash_iter_al_final(iter)){
-        if (cmp(hash_iter_ver_actual(iter), heap_ver_max(heap))>0){
+        if (cmp(hash_obtener(hash,hash_iter_ver_actual(iter)), heap_ver_max(heap))>0){
             if (heap_cantidad(heap) == cantidad) heap_desencolar(heap);
             heap_encolar(heap, hash_iter_ver_actual(iter));
         }
