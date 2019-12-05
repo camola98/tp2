@@ -37,7 +37,7 @@ int comparar_vuelos(const char* vuelo_a, const char* vuelo_b){
 
 adm_vuelos_t* adm_vuelos_crear(){
     adm_vuelos_t* vuelos = malloc(sizeof(adm_vuelos_t));
-    hash_t* hash = hash_crear(free_strv);
+    hash_t* hash = hash_crear(free_para_hash);
     abb_t* abb = abb_crear(comparar_vuelos, NULL);
     if (!vuelos || !hash || !abb) return NULL;
     vuelos->codigos = hash;
@@ -45,19 +45,10 @@ adm_vuelos_t* adm_vuelos_crear(){
     return vuelos;
 }
 
-//procesar el csv
-/*ej. formato
-    FLIGHT_NUMBER: 4608
-    AIRLINE: OO
-    ORIGIN_AIRPORT: PDX
-    DESTINATION_AIRPORT: SEA
-    TAIL_NUMBER: N812SK
-    PRIORITY: 08
-    DATE: 2018-04-10T23:22:55
-    DEPARTURE_DELAY: 05
-    AIR_TIME: 43
-    CANCELLED: 0
-*/
+void* free_para_hash(void* dato){
+    char* arreglo = (char*)dato;
+    free_strv(arreglo);
+}
 
 comando_t identificar_comando(char* valor){
     if (!strcmp(valor, "agregar_archivo")) return AGREGAR_ARCHIVO;
