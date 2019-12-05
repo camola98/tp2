@@ -193,13 +193,15 @@ bool info_vuelo(adm_vuelos_t* adm_vuelos, char* nro_vuelo){
     return true;    
 }
 
+bool prioridad_vuelos(adm_vuelos_t* adm_vuelos, char* )
+
 bool borrar_rango(const char* clave, void* dato, adm_vuelos_t* adm_vuelos){
     if (!abb_borrar(adm_vuelos->fechas_despegues, clave)) return false;
     if (!hash_borrar(adm_vuelos->codigos, clave)) return false;
     return true;
 }
 
-bool borrar(adm_vuelos_t* adm_vuelos, size_t cantidad, char* modo, char* desde, char* hasta){
+bool borrar(adm_vuelos_t* adm_vuelos, char* desde, char* hasta){
     if (!verificar_parametros(*(size_t*)1, ASC, desde, hasta)) return false;
     if(!visitar_rangos(adm_vuelos->fechas_despegues, desde, hasta, borrar_rango, adm_vuelos)) return false;
     return true;
@@ -208,10 +210,10 @@ bool borrar(adm_vuelos_t* adm_vuelos, size_t cantidad, char* modo, char* desde, 
 bool ejecutar_comando(adm_vuelos_t* adm_vuelos, comando_t comando, char** info_extra){
     if (comando == INVALIDO) return false;
     if (comando == AGREGAR_ARCHIVO && !agregar_archivo(adm_vuelos, info_extra[1])) return false;
-    if (comando == VER_TABLERO && !ver_tablero(adm_vuelos, info_extra[1])) return false;
+    if (comando == VER_TABLERO && !ver_tablero(adm_vuelos, atoi(info_extra[1]), info_extra[2], info_extra[3], info_extra[4])) return false;
     if (comando == INFO_VUELO && !info_vuelo(adm_vuelos, info_extra[1])) return false;
-    if (comando == PRIORIDAD_VUELOS && !prioridad_vuelos(adm_vuelos)) return false;
-    if (comando == BORRAR && !borrar(adm_vuelos)) return false;
+    if (comando == PRIORIDAD_VUELOS && !prioridad_vuelos(adm_vuelos, info_extra[1])) return false;
+    if (comando == BORRAR && !borrar(adm_vuelos, info_extra[1], info_extra[2])) return false;
     return true;
 }
 
