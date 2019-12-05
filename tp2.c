@@ -195,7 +195,8 @@ bool info_vuelo(adm_vuelos_t* adm_vuelos, char* nro_vuelo){
 
 bool prioridad_vuelos(adm_vuelos_t* adm_vuelos, char* )
 
-bool borrar_rango(const char* clave, void* dato, adm_vuelos_t* adm_vuelos){
+bool borrar_rango(const char* clave, void* dato, void* extra){
+    adm_vuelos_t* adm_vuelos = (adm_vuelos_t*)extra;
     if (!abb_borrar(adm_vuelos->fechas_despegues, clave)) return false;
     if (!hash_borrar(adm_vuelos->codigos, clave)) return false;
     return true;
