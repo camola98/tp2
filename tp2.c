@@ -60,6 +60,21 @@ size_t comparar_prioridad(size_t a, size_t b){
     return 0;
 }
 
+heap_t* heap_de_prioridades(hash_iter_t* iter, cmp_func_t cmp, size_t cantidad){
+    //heap de maximos
+    heap_t* heap = heap_crear(cmp);
+    if (!heap) return NULL;
+    while (heap_cantidad(heap)!= cantidad && !hash_iter_al_final(iter)){
+        if (cmp(hash_iter_ver_actual(iter), heap_ver_max(heap))<0){
+            if (heap_cantidad(heap) == cantidad) heap_desencolar(heap);
+            heap_encolar(heap, hash_iter_ver_actual(iter));
+        }
+        hash_iter_avanzar(iter);
+    }
+return heap;
+}
+
+
 // typedef struct vuelo{
 //        char* codigo;
 //        char* aerolinea;
