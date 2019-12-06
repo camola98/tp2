@@ -182,9 +182,17 @@ bool _abb_visitar_rangos(n_abb_t *raiz, char* desde, char* hasta, bool visitar(c
     else return _abb_visitar_rangos(raiz->izq, desde, hasta, visitar, extra, cont_recorrido) && _abb_visitar_rangos(raiz->der, desde, hasta, visitar, extra, visitar(raiz->clave, raiz->dato, extra)); 
 }
 
-void abb_visitar_rangos(abb_t *arbol, char* desde, char* hasta, bool visitar(const char *, void *, void *), void *extra){
+bool _abb_visitar_rangos_inverso(n_abb_t *raiz, char* desde, char* hasta, bool visitar(const char *, void *, void *), void *extra, bool cont_recorrido){
+    if (!raiz || !cont_recorrido) return cont_recorrido;
+    if (strcmp(raiz->clave, desde) < 0) return _abb_visitar_rangos_inverso(raiz->der, desde, hasta, visitar, extra, cont_recorrido);
+    if (strcmp(raiz->clave, hasta) > 0) return _abb_visitar_rangos_inverso(raiz->izq, desde, hasta, visitar, extra, cont_recorrido);
+    else return _abb_visitar_rangos_inverso(raiz->der, desde, hasta, visitar, extra, cont_recorrido) && _abb_visitar_rangos_inverso(raiz->izq, desde, hasta, visitar, extra, visitar(raiz->clave, raiz->dato, extra)); 
+}
+
+void abb_visitar_rangos(abb_t *arbol, char* desde, char* hasta, bool visitar(const char *, void *, void *), void *extra, int modo){
     bool cont_recorrido = true;
-    _abb_visitar_rangos(arbol->raiz, desde, hasta, visitar, extra, cont_recorrido);
+    if (modo == 0) _abb_visitar_rangos(arbol->raiz, desde, hasta, visitar, extra, cont_recorrido);
+    if (modo == 1) _abb_visitar_rangos_inverso(arbol->raiz, desde, hasta, visitar, extra, cont_recorrido);
 }
 
 //
