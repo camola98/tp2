@@ -83,9 +83,12 @@ bool agregar_archivo(adm_vuelos_t* adm_vuelos, char** info, int cant_parametros)
     size_t capacidad = 0;
     while (getline(&linea, &capacidad, file) != -1){
         char** arreglo = split(linea, ',');
-        if (!hash_guardar(adm_vuelos->codigos, arreglo[0], arreglo)){
-            fclose(file); return false;
-        }
+        if (hash_pertenece(adm_vuelos->codigos, arreglo[0])){
+            char* clave_abb = unir_str(((char**)hash_obtener(adm_vuelos->codigos, arreglo[0]))[6], arreglo[0]);
+            abb_borrar(adm_vuelos->fechas_despegues, clave_abb);
+            free(clave_abb);
+        } 
+        if (!hash_guardar(adm_vuelos->codigos, arreglo[0], arreglo)){fclose(file); return false;}
         char* str_unido = unir_str(arreglo[6], arreglo[0]);
         if (!abb_guardar(adm_vuelos->fechas_despegues, str_unido, NULL)){
             fclose(file); free(str_unido); free_strv(hash_borrar(adm_vuelos->codigos, arreglo[0])); return false;
@@ -169,7 +172,7 @@ bool hash_encolar_todo(heap_t* heap, hash_t* hash){
 bool prioridad_vuelos(adm_vuelos_t* adm_vuelos, char** info, int cant_parametros){
     if (cant_parametros < 2) return false;
     int k = atoi(info[1]);
-    // if (k < 0) return false;
+    if (k <= 0) return false;
     heap_t* vuelos = heap_crear(comparar_prioridad);
     if (!vuelos) return false;
     if (!hash_encolar_todo(vuelos, adm_vuelos->codigos));
